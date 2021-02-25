@@ -20,13 +20,19 @@ jobs:
       - run: npm install
 
       - name: Create Build
-        run: npm run export --if-present
+        run: npm run build --if-present
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v1
         with:
-          name: build
-          path: __sapper__/export
+          name: __sapper__/build
+          path: __sapper__/build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: static
+          path: static
 
   commit-build:
     needs: build
@@ -47,13 +53,20 @@ jobs:
       - name: Download website build
         uses: actions/download-artifact@v1
         with:
-          name: build
-          path: build
+          name: __sapper__/build
+          path: __sapper__/build
+
+      - name: Download website build
+        uses: actions/download-artifact@v1
+        with:
+          name: static
+          path: static
 
       - name: Commit and Push
         run: |
           if [ $(git status --porcelain=v1 2>/dev/null | wc -l) != "0" ] ; then
-            git add -f build
+            git add -f __sapper__/build
+            git add -f static
             git commit -m "gh-actions deployed a new website build"
             git push --force https://${GITHUB_ACTOR}:@github.com/${GITHUB_REPOSITORY}.git HEAD:website-build
           fi
